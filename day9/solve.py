@@ -2,9 +2,6 @@ from collections import defaultdict
 from pprint import pprint
 import itertools
 
-def hash_it(*destinations):
-    return tuple(sorted(destinations))
-
 # Read data
 with open('input.txt') as f:
     data = f.read().splitlines()
@@ -18,7 +15,7 @@ data = [(x[0], x[2], int(x[4])) for x in data]
 cities = set((x[0] for x in data))
 cities = cities.union(set((x[1] for x in data)))
 
-city_distances = defaultdict(dict)
+city_distances = {}
 for x in data:
     origin = x[0]
     destination = x[1]
@@ -26,7 +23,7 @@ for x in data:
 
     # Save as hash instead that is order independent.
     # That way a future solution might be nicer too since it can simply find answers by looking at if the answer for a hash already exists.
-    city_distances[hash_it(origin, destination)] = dist
+    city_distances[(origin, destination)] = dist
 
 n = len(cities)
 permutations = itertools.permutations(cities, n)
@@ -35,8 +32,13 @@ def get_distance(*destinations):
     total = 0
     # loop over all destinations pairwise
     for start, stop in zip(destinations, destinations[1:]):
-        key = hash_it(start, stop)
-        total += city_distances[key]
+        key = (start, stop)
+        try:
+            total += city_distances[key]
+        except KeyError:
+            key = (stop, start)
+            total += city_distances[key]
+
     return total
 
 
