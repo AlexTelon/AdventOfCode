@@ -48,21 +48,23 @@ def city_distances(data):
     """
     return { path(origin, destination):dist for origin, destination, dist in data }
 
+
 def dist(a, b):
+    """Calculates the distance between two cities"""
     return city_distances[path(a, b)]
 
+
 def get_distance(*destinations):
-    # [a,b,c, ...] -> [(a,b), (b,c), ...]
-    pairs = zip(destinations, destinations[1:])
-    return sum(dist(a,b) for a,b, in pairs)
+    """Calculates the distance when traversing all destinations"""
+    # [a,b,c, ...] -> sum([dist(a,b), dist(b,c), ...])
+    return sum(dist(a,b) for a, b, in zip(destinations, destinations[1:]))
+
 
 data = parse_data()
 cities = get_cities(data)
 city_distances = city_distances(data)
 
-costs = {}
-for c in itertools.permutations(cities):
-    costs[c] = get_distance(*c)
+costs = {perm:get_distance(*perm) for perm in itertools.permutations(cities)}
 
 print(f"nr of cities: {len(cities)}, nr of solutions {len(costs)}")
 print(f"min: {min(costs.values())}")
