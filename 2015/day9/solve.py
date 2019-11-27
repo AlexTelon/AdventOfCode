@@ -29,14 +29,20 @@ def parse_data():
     """
     with open('input.txt') as f:
         data = [line.split() for line in f]
-    return [(x[0], x[2], int(x[4])) for x in data]
 
+    parsed_data = []
+    for origin, _, destination, _, dist in data:
+        parsed_data.append((origin, destination, int(dist)))
+    return parsed_data
+    # return [(a, b, int(dist)) for a, _, b, _, dist in data]
 
 def get_cities(data):
     """Gives a set of all cities mentioned in the data."""
-    cities = set((x[0] for x in data))
-    return cities.union(set((x[1] for x in data)))
-
+    cities = set()
+    for origin, destination, _ in data:
+        cities.add(origin)
+        cities.add(destination)
+    return cities
 
 def city_distances(data):
     """Creates a dictionary of where a path is the key and the value is the distance.
@@ -64,6 +70,7 @@ def get_distance(*destinations):
 data = parse_data()
 cities = get_cities(data)
 city_distances = city_distances(data)
+
 costs = {}
 for c in itertools.permutations(cities):
     costs[c] = get_distance(*c)
