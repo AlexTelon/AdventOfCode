@@ -1,0 +1,1 @@
+import itertools as i;d=[(a,b,int(d))for a,_,b,_,d in [l.split()for l in open('input.txt')]];e={frozenset([a,b]):c for a,b,c in d};f={p:sum(e[frozenset([a,b])]for a,b in zip(p,p[1:]))for p in i.permutations({x for a,b,_ in d for x in (a,b)})};print(f"min: {min(f.values())}, max: {max(f.values())}")
