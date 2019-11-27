@@ -31,18 +31,20 @@ def parse_data():
         data = [line.split() for line in f]
 
     parsed_data = []
-    for origin, _, destination, _, dist in data:
-        parsed_data.append((origin, destination, int(dist)))
+    for a, _, b, _, dist in data:
+        parsed_data.append((a, b, int(dist)))
     return parsed_data
     # return [(a, b, int(dist)) for a, _, b, _, dist in data]
+
 
 def get_cities(data):
     """Gives a set of all cities mentioned in the data."""
     cities = set()
-    for origin, destination, _ in data:
-        cities.add(origin)
-        cities.add(destination)
+    for a, b, _ in data:
+        cities.add(a)
+        cities.add(b)
     return cities
+
 
 def city_distances(data):
     """Creates a dictionary of where a path is the key and the value is the distance.
@@ -54,17 +56,19 @@ def city_distances(data):
         }
     """
     result = {}
-    for origin, destination, dist in data:
-        result[path(origin, destination)] = dist
+    for a, b, dist in data:
+        result[path(a, b)] = dist
     return result
+    # return { path(a, b):dist for a, b, dist in data }
 
 
 def get_distance(*destinations):
     total = 0
     # loop over all destinations pairwise
-    for start, stop in zip(destinations, destinations[1:]):
-        total += city_distances[path(start, stop)]
+    for a, b in zip(destinations, destinations[1:]):
+        total += city_distances[path(a, b)]
     return total
+    # return sum(dist(a,b) for a, b, in zip(destinations, destinations[1:]))
 
 
 data = parse_data()
