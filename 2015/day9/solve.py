@@ -14,23 +14,18 @@ cities = cities.union(set((x[1] for x in data)))
 
 city_distances = {}
 for origin, destination, dist in data:
-    city_distances[(origin, destination)] = dist
-
-permutations = itertools.permutations(cities, len(cities))
+    city_distances[frozenset([origin, destination])] = dist
 
 def get_distance(*destinations):
     total = 0
     # loop over all destinations pairwise
     for start, stop in zip(destinations, destinations[1:]):
-        try:
-            total += city_distances[(start, stop)]
-        except KeyError:
-            total += city_distances[(stop, start)]
+        total += city_distances[frozenset([start, stop])]
 
     return total
 
 costs = {}
-for c in permutations:
+for c in itertools.permutations(cities):
     costs[c] = get_distance(*c)
 
 print(f"nr of cities: {len(cities)}, nr of solutions {len(costs)}")
