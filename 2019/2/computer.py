@@ -4,36 +4,48 @@ import itertools
 
 class Computer():
 
-    def add(self, a, b, c):
-        self.data[c] = (self.data[a] + self.data[b])
-
-    def multiply(self, a, b, c):
-        self.data[c] = (self.data[a] * self.data[b])
-
-    def halt(self):
-        pass
-
-    def __init__(self):
-        self.op_codes = {
-            1: lambda data: self.add(*data[:3]),
-            2: lambda data: self.multiply(*data[:3]),
-            99: self.halt,
-        }
-        
     def load_memory(self, file):
         self.data = []
         with open(file, 'r') as f:
             self.data = list(map(int, f.read().split(',')))
 
+    def fetch_and_step(self, nr):
+        """Fetches a slice of memory and increments pc."""
+        i = self.pc
+        self.pc += nr
+        return self.data[i:i+nr] 
+
+
+    def add(self):
+        a, b, c = self.fetch_and_step(3)
+        self.data[c] = (self.data[a] + self.data[b])
+
+    def multiply(self):
+        a, b, c = self.fetch_and_step(3)
+        self.data[c] = (self.data[a] * self.data[b])
+
+    def halt(self):
+        self.abort = True
+
+
+    def __init__(self):
+        self.abort = False
+        self.op_codes = {
+            1: self.add,
+            2: self.multiply,
+            99: self.halt,
+        }
+
+    def _exec_instruction(self, op):
+        self.op_codes[op]()
+
+
     def run(self):
         self.pc = 0
-        while True:
-            op = self.data[self.pc]
-            # args = data[pc+1:pc+4]
-            if op == 99:
-                break
-            self.op_codes[op](self.data[self.pc+1:])
-            self.pc += 4
+        self.abort = False
+        while not self.abort:
+            op, = self.fetch_and_step(1)
+            self._exec_instruction(op)
 
 
 if __name__ == "__main__":
