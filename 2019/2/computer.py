@@ -1,52 +1,43 @@
 import collections
 import itertools
 
-def add(a, b, c):
-    global data
-    data[c] = (data[a] + data[b])
 
-def multiply(a, b, c):
-    global data
-    data[c] = (data[a] * data[b])
+class Computer():
 
-# def halt(*args):
-#     exit()
+    def add(self, a, b, c):
+        self.data[c] = (self.data[a] + self.data[b])
 
-op_codes = {
-    1: add,
-    2: multiply,
-    99: halt,
-}
+    def multiply(self, a, b, c):
+        self.data[c] = (self.data[a] * self.data[b])
 
-def load_memory(file):
-    global data
-    data = []
-    with open(file, 'r') as f:
-        data = list(map(int, f.read().split(',')))
+    def halt(self):
+        pass
 
-def run_program():
-    pc = 0
-    while True:
-        op = data[pc]
-        args = data[pc+1:pc+4]
-        if op == 99:
-            break
-        op_codes[op](*args)
-        pc += 4
+    def __init__(self):
+        self.op_codes = {
+            1: lambda data: self.add(*data[:3]),
+            2: lambda data: self.multiply(*data[:3]),
+            99: self.halt,
+        }
+        
+    def load_memory(self, file):
+        self.data = []
+        with open(file, 'r') as f:
+            self.data = list(map(int, f.read().split(',')))
+
+    def run(self):
+        self.pc = 0
+        while True:
+            op = self.data[self.pc]
+            # args = data[pc+1:pc+4]
+            if op == 99:
+                break
+            self.op_codes[op](self.data[self.pc+1:])
+            self.pc += 4
 
 
 if __name__ == "__main__":
-    for noun in range(100):
-        for verb in range(100):
-            
-            load_memory('input.txt')
-            data[1] = noun
-            data[2] = verb
 
-            print(f'{noun} {verb}')
-            run_program()
-
-            if data[0] == 19690720:
-                print(data[0])
-                print(f"Answer: 100 * {noun} + {verb} == {100 * noun + verb}")
-                exit()
+    computer = Computer()
+    computer.load_memory('input.txt')
+    computer.run()
