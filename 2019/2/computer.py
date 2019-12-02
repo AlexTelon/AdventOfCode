@@ -7,9 +7,15 @@ def instruction(nr_of_args):
         @functools.wraps(function)
         def wrapper(*args, **kwargs):
             self = args[0]
+            instruction_args = self.fetch_and_step(nr_of_args)
+
             if self.debug:
-                print(f"instruction args:{args} nr_of_args: {nr_of_args}")
-            result = function(self, *self.fetch_and_step(nr_of_args))
+                print(f"instruction {function.__name__} {instruction_args}")
+
+            # execute
+            result = function(self, *instruction_args)
+            # if self.debug:
+            #     print(f"data[0]: {self.data[0]}")
             return result
         return wrapper
     return real_decorator
@@ -38,19 +44,19 @@ class Computer():
     def halt(self):
         self.abort = True
 
-    # def jmp(self):
-    #     jmp_addr = self.fetch_and_step(1)
+    # @instruction(1)
+    # def jmp(self, jmp_addr):
     #     self.pc = jmp_addr
 
-    # def jmp_eq(self):
+    # @instruction(3)
+    # def jmp_eq(self, jmp, a, b):
     #     """Jump if equal"""
-    #     jmp, a, b = self.fetch_and_step(3)
     #     if a == b:
     #         self.pc = jmp_addr
 
-    # def jmp_neq(self):
+    # @instruction(3)
+    # def jmp_neq(self, jmp, a, b):
     #     """Jump if not equal"""
-    #     jmp, a, b = self.fetch_and_step(3)
     #     if a != b:
     #         self.pc = jmp_addr
 
@@ -92,7 +98,13 @@ class Computer():
 
 if __name__ == "__main__":
 
-    computer = Computer(debug=True)
+    computer = Computer(debug=False)
 
     computer.load_memory('input.txt')
+    # print("-----------")
+    # print(computer.data)
+
     computer.run()
+
+    # print("-----------")
+    # print(computer.data)
