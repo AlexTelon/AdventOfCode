@@ -1,6 +1,6 @@
 import computer
 
-computer = computer.Computer()
+computer = computer.Computer(debug=False)
 
 for noun in range(100):
     for verb in range(100):
