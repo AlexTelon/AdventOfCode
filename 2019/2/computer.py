@@ -10,12 +10,14 @@ def instruction(nr_of_args):
             instruction_args = self.fetch_and_step(nr_of_args)
 
             if self.debug:
-                print(f"instruction {function.__name__} {instruction_args}")
+                print(f"{function.__name__: >10} {instruction_args}\t\t unpacked args: {[self.data[x] for x in instruction_args]}", end="")
 
             # execute
             result = function(self, *instruction_args)
-            # if self.debug:
-            #     print(f"data[0]: {self.data[0]}")
+            if self.debug:
+                print(f"\t\t data at last arg position afterwards: {self.data[instruction_args[-1]]}", end="")
+                print(f"\tpc: {self.pc}")
+                # print(f"data[0]: {self.data[0]}")
             return result
         return wrapper
     return real_decorator
@@ -98,7 +100,7 @@ class Computer():
 
 if __name__ == "__main__":
 
-    computer = Computer(debug=False)
+    computer = Computer(debug=True)
 
     computer.load_memory('input.txt')
     # print("-----------")
@@ -108,3 +110,6 @@ if __name__ == "__main__":
 
     # print("-----------")
     # print(computer.data)
+
+# TODO add a way to show where PC is relative to data
+# TODO add a way to convert all OP_codes in data to named functions and then split after the right nr of args
