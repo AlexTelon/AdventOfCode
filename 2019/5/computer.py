@@ -52,29 +52,30 @@ class Computer():
         """Fetches a slice of memory and increments pc."""
         i = self.pc
         self.pc += nr
-        return self.data[i:i+nr]
+
+        # Arguments according to parameter mode
+        self.args = []
+        # The raw arguments. Needed for write parameters.
+        self.args_raw = self.data[i:i+nr]
+
+        for i, arg in enumerate(self.args_raw):
+            mode = self.param_mode[i]
+            if mode == 0:
+                self.args.append(self.data[arg])
+            else:
+                self.args.append(arg)
+
+        return self.args
 
     @instruction(3)
-    def add(self, a, b, c):
-        if self.param_mode[0] == 0:
-            a = self.data[a]
-        if self.param_mode[1] == 0:
-            b = self.data[b]
-
-        self.data[c] = a + b
+    def add(self, a, b, _):
+        addr = self.args_raw[2]
+        self.data[addr] = a + b
 
     @instruction(3)
-    def minus(self, a, b, c):
-        self.data[c] = (self.data[a] - self.data[b])
-
-    @instruction(3)
-    def multiply(self, a, b, c):
-        if self.param_mode[0] == 0:
-            a = self.data[a]
-        if self.param_mode[1] == 0:
-            b = self.data[b]
-
-        self.data[c] = a * b
+    def multiply(self, a, b, _):
+        addr = self.args_raw[2]
+        self.data[addr] = a * b
 
     # @instruction(3)
     # def divide(self, a, b, c):
@@ -84,45 +85,27 @@ class Computer():
         self.abort = True
 
     @instruction(1)
-    def input(self, addr):
+    def input(self, _):
+        addr = self.args_raw[0]
         self.data[addr] = int(input())
     
     @instruction(1)
     def output(self, a):
-        mode = self.param_mode[0]
-        if mode == 0:
-            a = self.data[a]
-        print(a)
-
-
+        print("output:", a)
 
     @instruction(2)
     def jmp_true(self, expr, jmp_addr):
-        if self.param_mode[0] == 0:
-            expr = self.data[expr]
-        if self.param_mode[1] == 0:
-            jmp_addr = self.data[jmp_addr]
-
         if expr != 0:
             self.pc = jmp_addr
 
     @instruction(2)
     def jmp_false(self, expr, jmp_addr):
-        if self.param_mode[0] == 0:
-            expr = self.data[expr]
-        if self.param_mode[1] == 0:
-            jmp_addr = self.data[jmp_addr]
-
         if expr == 0:
             self.pc = jmp_addr
 
     @instruction(3)
-    def less_than(self, a, b, addr):
-        if self.param_mode[0] == 0:
-            a = self.data[a]
-        if self.param_mode[1] == 0:
-            b = self.data[b]
-
+    def less_than(self, a, b, _):
+        addr = self.args_raw[2]
         result = 0
         if a < b:
             result = 1
@@ -130,34 +113,13 @@ class Computer():
 
 
     @instruction(3)
-    def equals(self, a, b, addr):
-        if self.param_mode[0] == 0:
-            a = self.data[a]
-        if self.param_mode[1] == 0:
-            b = self.data[b]
-
+    def equals(self, a, b, _):
+        addr = self.args_raw[2]
         result = 0
         if a == b:
             result = 1
         self.data[addr] = result
- 
-    # @instruction(3)
-    # def jmp_eq(self, jmp, a, b):
-    #     """Jump if equal"""
-    #     if a == b:
-    #         self.pc = jmp_addr
 
-    # @instruction(3)
-    # def jmp_neq(self, jmp, a, b):
-    #     """Jump if not equal"""
-    #     if a != b:
-    #         self.pc = jmp_addr
-
-    # @instruction(3)
-    # def jmp_neq(self, jmp, a, b):
-    #     """Jump if not equal"""
-    #     if a != b:
-    #         self.pc = jmp_addr
 
     # @instruction(1)
     # def pop(self, a):
