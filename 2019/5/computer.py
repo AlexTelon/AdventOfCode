@@ -1,4 +1,6 @@
 from collections import namedtuple
+from collections import defaultdict
+
 import collections
 import itertools
 import functools
@@ -53,26 +55,10 @@ class Computer():
         return self.data[i:i+nr]
 
     @instruction(3)
-    def add(self, *args):
-        stuff = []
-        # for i, x in enumerate(self.param_mode[::-1]):
-        modes = []
-        for i in range(3):
-            x = 0
-            if len(self.param_mode) > i:
-                x = self.param_mode[::-1][i]
-            modes.append(x)
-
-            if x == 0:
-                stuff.append(args[i])
-            elif x == 1:
-                stuff.append(args[i])
-
-        a,b,c = stuff
-
-        if modes[0] == 0:
+    def add(self, a, b, c):
+        if self.param_mode[0] == 0:
             a = self.data[a]
-        if modes[1] == 0:
+        if self.param_mode[1] == 0:
             b = self.data[b]
 
         self.data[c] = a + b
@@ -81,51 +67,11 @@ class Computer():
     def minus(self, a, b, c):
         self.data[c] = (self.data[a] - self.data[b])
 
-        # # for i, x in enumerate(self.param_mode[::-1]):
-        # for i in range(3):
-        #     x = 0
-        #     if len(self.param_mode) > i:
-        #         x = self.param_mode[::-1][i]
-
-        #     if x == 0:
-        #         val = args[i]
-        #         stuff.append(self.data[val])
-        #     elif x == 1:
-        #         stuff.append(args[i])
-
     @instruction(3)
-    def multiply(self, *args):
-        stuff = []
-        # for i, x in enumerate(self.param_mode[::-1]):
-        modes = []
-        for i in range(3):
-            x = 0
-            if len(self.param_mode) > i:
-                x = self.param_mode[::-1][i]
-            modes.append(x)
-
-            if x == 0:
-                stuff.append(args[i])
-            elif x == 1:
-                stuff.append(args[i])
-                # val = args[i]
-                # stuff.append(self.data[val])
-
-        # a, b, c = stuff
-        # pair = list(zip(stuff, modes))
-        # arguments = []
-        # for x, mode in zip(stuff, modes):
-        #     if mode == 0:
-        #         arguments.append(self.data[x])
-        #     else:
-        #         arguments.append(x)
-        
-        # a, b, c = [x if mode == 0 else self.data[x] for x, mode in zip(stuff, modes)]
-        a,b,c = stuff
-
-        if modes[0] == 0:
+    def multiply(self, a, b, c):
+        if self.param_mode[0] == 0:
             a = self.data[a]
-        if modes[1] == 0:
+        if self.param_mode[1] == 0:
             b = self.data[b]
 
         self.data[c] = a * b
@@ -152,15 +98,9 @@ class Computer():
 
     @instruction(2)
     def jmp_true(self, expr, jmp_addr):
-        modes = []
-        for i in range(3):
-            x = 0
-            if len(self.param_mode) > i:
-                x = self.param_mode[::-1][i]
-            modes.append(x)
-        if modes[0] == 0:
+        if self.param_mode[0] == 0:
             expr = self.data[expr]
-        if modes[1] == 0:
+        if self.param_mode[1] == 0:
             jmp_addr = self.data[jmp_addr]
 
         if expr != 0:
@@ -168,15 +108,9 @@ class Computer():
 
     @instruction(2)
     def jmp_false(self, expr, jmp_addr):
-        modes = []
-        for i in range(3):
-            x = 0
-            if len(self.param_mode) > i:
-                x = self.param_mode[::-1][i]
-            modes.append(x)
-        if modes[0] == 0:
+        if self.param_mode[0] == 0:
             expr = self.data[expr]
-        if modes[1] == 0:
+        if self.param_mode[1] == 0:
             jmp_addr = self.data[jmp_addr]
 
         if expr == 0:
@@ -184,16 +118,9 @@ class Computer():
 
     @instruction(3)
     def less_than(self, a, b, addr):
-        modes = []
-        for i in range(3):
-            x = 0
-            if len(self.param_mode) > i:
-                x = self.param_mode[::-1][i]
-            modes.append(x)
-
-        if modes[0] == 0:
+        if self.param_mode[0] == 0:
             a = self.data[a]
-        if modes[1] == 0:
+        if self.param_mode[1] == 0:
             b = self.data[b]
 
         result = 0
@@ -204,18 +131,10 @@ class Computer():
 
     @instruction(3)
     def equals(self, a, b, addr):
-        modes = []
-        for i in range(3):
-            x = 0
-            if len(self.param_mode) > i:
-                x = self.param_mode[::-1][i]
-            modes.append(x)
-
-        if modes[0] == 0:
+        if self.param_mode[0] == 0:
             a = self.data[a]
-        if modes[1] == 0:
+        if self.param_mode[1] == 0:
             b = self.data[b]
-
 
         result = 0
         if a == b:
@@ -287,13 +206,14 @@ class Computer():
         instruction()
 
     def tick(self):
-        # op, = self.fetch_and_step(1)
-        # op, = self.fetch_and_step(1)
         op, = self.data[self.pc:self.pc+1]
         self.pc += 1
 
         nums = [int(i) for i in str(op)]
-        self.param_mode = [0,0]
+
+        self.param_mode = defaultdict(int)
+
+
         if len(nums) <= 2:
             # normal stuff
             pass
@@ -302,8 +222,10 @@ class Computer():
             op = int(op[1]) # hack for now, change halt to 99 again afterwards
             if op == 9:
                 op == 99
-            self.param_mode = nums[:-2]
-        
+            nums = list(reversed(nums[:-2]))
+            for i, x in enumerate(nums):
+                self.param_mode[i] = x
+
         self._exec_instruction(op)
 
     def run(self):
