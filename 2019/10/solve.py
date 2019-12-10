@@ -64,8 +64,11 @@ def seen_from(x, y):
         if i == x and j == y:
             continue
 
+        other = (i, j)
+        origin = (x, y)
 
-        slope = ((x - i), (y - j))
+        # slope = ((x - i), (y - j))
+        slope = ((i - x), (j - y))
         least = abs(fractions.gcd(*slope))
         
         # make it (0, 1) or (0, -1) so we keep the sign
@@ -78,6 +81,9 @@ def seen_from(x, y):
             if slope[0] % least == 0 and slope[1] % least == 0:
                 slope = (slope[0] // least, slope[1] // least)
 
+
+        # if slope == (-24, -1):
+        #     print('here')
 
         seen_slopes.add(slope)
 
@@ -100,6 +106,14 @@ def seen_from(x, y):
             break
 
     return result
+
+# derp = seen_from(25, 31)
+# print(25, 31)
+# print(derp)
+# with open('result.txt', 'w') as f:
+#     a = ",".join(str(x) for x in derp)
+#     f.write(a)
+# exit()
 
 
 # How many can be seen
@@ -129,10 +143,26 @@ for y, line in enumerate(data):
 import operator
 value = max(seen.values())
 index = max(seen, key=seen.get)
-# index = seen.index(value)
 pprint(seen)
 pprint(f"best is results[{index}]: {stuff[index]}")
 print()
 print(f"Best {value}")
 
-# print("\n".join(seen))
+
+with open('result_small.txt', 'w') as f:
+    a = ",".join(str(x) for x in stuff[index])
+    f.write(a)
+
+import pickle
+with open('part1_small.pickle', 'wb') as handle:
+    pickle.dump(stuff, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+# with open('part1.pickle', 'rb') as handle:
+#     b = pickle.load(handle)
+
+# print(stuff == b)
+
+# # part2
+# # from the ideal position (25, 31) use the slopes there
+# data = open('result.txt').read()
+# slopes = eval(data)
