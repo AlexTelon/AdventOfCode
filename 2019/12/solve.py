@@ -34,16 +34,16 @@ class Moon():
         return hash(tmp)
 
 
-# io = Moon(Position(x=1, y=4, z=4))
-# europa = Moon(Position(x=-4, y=-1, z=19))
-# ganymede = Moon(Position(x=-15, y=-14, z=12))
-# callisto = Moon(Position(x=-17, y=1, z=10))
+io = Moon(Position(x=1, y=4, z=4))
+europa = Moon(Position(x=-4, y=-1, z=19))
+ganymede = Moon(Position(x=-15, y=-14, z=12))
+callisto = Moon(Position(x=-17, y=1, z=10))
 
 # example
-io = Moon(Position(x=-1, y=0, z=2))
-europa = Moon(Position(x=2, y=-10, z=-7))
-ganymede = Moon(Position(x=4, y=-8, z=8))
-callisto = Moon(Position(x=3, y=5, z=-1))
+# io = Moon(Position(x=-1, y=0, z=2))
+# europa = Moon(Position(x=2, y=-10, z=-7))
+# ganymede = Moon(Position(x=4, y=-8, z=8))
+# callisto = Moon(Position(x=3, y=5, z=-1))
 
 moons = []
 moons.extend([io, europa, ganymede, callisto])
@@ -87,9 +87,24 @@ moon_saving.append({})
 moon_saving.append({})
 moon_saving.append({})
 
-cycles_found_for = set()
+cycles_found_for = defaultdict(list)
+step_cycles = defaultdict(dict)
 eqvations = []
 result_tuples = []
+
+from functools import reduce
+from math import gcd
+def lcm_iter(denominators):
+    return reduce(lambda a,b: a*b // gcd(a,b), denominators)
+
+# a, b = 2, 3
+# stuff = [2,3,4,5]
+# print(a, b, lcm(a,b))
+# print(", ".join(str(x) for x in stuff), lcm_iter(stuff))
+
+# def shortest_cycle(cycles):
+
+# exit()
 
 def check_state(step):
     """Works but didnt read the thing about us needing to find a more efficient way to do this."""
@@ -98,24 +113,61 @@ def check_state(step):
     for i, moon in enumerate(moons):
         new = hash((moon.pos, moon.velocity))
         if new in moon_saving[i]:
-            if i in cycles_found_for:
-                continue
-            cycles_found_for.add(i)
+            # if i in cycles_found_for:
+            #     continue
+            # cycles_found_for.add(i)
             constant = moon_saving[i][new]
             cycle = step - constant
             # print()
             # print(f"found cycle for {i}")
             # print(f"state: {moon}")
             # print(f"previously found at step: {moon_saving[i][new]}, now at step {step}: cycle: {step - moon_saving[i][new]}")
-            print(f"{i}: {constant} + {cycle}x")
+            if constant == 0:
+                print(f"{i}: {constant} + {cycle}x")
             eqvations.append(f"{constant} + {cycle}{'xyzp'[i]}")
+            cycles_found_for[i].append((constant, cycle))
             result_tuples.append((constant, cycle))
 
-            if len(cycles_found_for) == 4:
-                print("done found all needed solutions!")
-                print(" = ".join(eqvations))
-                print("cycle: ", ", ".join(str(cycle) for constant, cycle in result_tuples))
+            # step_cycles[constant][i] = (constant, cycle)
+            step_cycles[constant][i] = step
+            
+            # for key, values in step_cycles.items():
+            #     if len(values) == 4:
+            #         lcm = lcm_iter(values.values())
+            #         derp = len(set(values.values()))
+            #         if len(set(values)) == 1:
+            #             print(key, values)
+
+            if len(step_cycles[0]) == 4 and len(set(step_cycles[0].values())) == 1:
+                print(step_cycles[0])
+                print(f'step is: {step}')
                 exit()
+
+            if any(key for key, values in step_cycles.items() if (len(values) == 4 and len(set(values.values())) == 1)):
+                answers = {key:values for key, values in step_cycles.items() if (len(values) == 4 and len(set(values.values()))) == 1}
+                # for answer in answers:
+                #     lcm()
+                print("done found all needed solutions!")
+                print(f"answer {answers}")
+                # print(" = ".join(answer))
+                # print("cycle: ", ", ".join(str(cycle) for constant, cycle in result_tuples))
+                exit()
+
+            # if len(cycles_found_for) == 4:
+            #     # check if we have a full solution.
+            #     for combination in combinations(cycles_found_for, 4):
+            #         print(combination)
+            #         lcm = lcm_iter((cycle for const, cycle in result_tuples))
+            #         print(f'LCM: {lcm}')
+
+
+            # # if len(result_tuples) > 40:
+            # # if sum(1 for const, cycle in result_tuples if const == 0):
+            # if len(cycles_found_for) == 4:
+            #     print("done found all needed solutions!")
+            #     print(" = ".join(eqvations))
+            #     print("cycle: ", ", ".join(str(cycle) for constant, cycle in result_tuples))
+            #     exit()
 
         else:
             moon_saving[i][new] = step
