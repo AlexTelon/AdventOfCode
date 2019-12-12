@@ -29,6 +29,10 @@ class Moon():
         return f"{self.pos}>, {self.velocity}"
         # return f"pos=<{self.pos}>, vel=<{self.velocity}>"
 
+    def __hash__(self):
+        tmp = (hash(self.pos), hash(self.velocity))
+        return hash(tmp)
+
 
 io = Moon(Position(x=1, y=4, z=4))
 europa = Moon(Position(x=-4, y=-1, z=19))
@@ -76,11 +80,26 @@ def update_velocities():
     for moon in moons:
         moon.pos = get_new_pos(moon)
 
+hashes = set()
+
+def check_state(step):
+    """Works but didnt read the thing about us needing to find a more efficient way to do this."""
+    new = tuple(hash(moon) for moon in moons)
+    if new in hashes:
+        print("found!")
+        print(f"step: {step}")
+        exit()
+    else:
+        hashes.add(new)
+
 pprint(moons)
-for step in range(0, 1000):
+for step in itertools.count():
     update_positions()
     update_velocities()
-    
+
+    # need a more efficient solution -> math?    
+    check_state(step)
+
     # print(f"step: {step+1}")
     # pprint(moons)
 
@@ -96,22 +115,3 @@ for moon in moons:
     total += pot * kin
 
 print(f"energy: {total}")
-
-# 12036000 is wrong
-
-# def get_data():
-#     lines = [line.strip() for line in open('input.txt')]
-#     lines = [line[1:-2] for line in lines]
-#     data = [line.strip().split(',') for line in lines]
-#     data = [x.split('=') for d in data for x in d]
-#     data = [(x[0], int(x[1])) for x in data]
-
-#     return data
-#     <x=1, y=4, z=4>
-# <x=-4, y=-1, z=19>
-# <x=-15, y=-14, z=12>
-# <x=-17, y=1, z=10>
-
-# data = get_data()
-# print(data)
-# exit()
