@@ -109,7 +109,12 @@ class Computer():
     def input(self, _):
         addr = self.get_addr(0)
         # item = int(input())
+        # print("computer waiting_for_input")
+        self.waiting_for_input = True
         item = self.input_queue.get()
+        self.waiting_for_input = False
+
+        
         # print(f"got input {item}")
         self.data[addr] = item
 
@@ -182,6 +187,7 @@ class Computer():
         self.input_queue = queue.Queue()
         self.output_queue = queue.Queue()
 
+        self.waiting_for_input = False
 
         # 3: self.minus,
         # 4: self.divide,
