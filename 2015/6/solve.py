@@ -16,9 +16,9 @@ def action(a,b, func):
 data = []
 
 actions = {
-    'turn_on':  lambda x: 1,
-    'turn_off': lambda x: 0,
-    'toggle': lambda x: 1 if x == 0 else 0,
+    'turn_on':  lambda x: x+1,
+    'turn_off': lambda x: max(0, x-1),
+    'toggle': lambda x: x+2,
 }
 
 for i, line in enumerate(lines):
