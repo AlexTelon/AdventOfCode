@@ -1,21 +1,26 @@
 from hashlib import md5
+from itertools import count
 
 prefix = 'reyedfim'
-#prefix = 'abc
-password = ""
-index = 0
+#prefix = 'abc'
+password = {}
 
-while True:
-
-    code = str(prefix + str(index)).encode('utf8')
-    index += 1
+for num in count():
+    code = str(prefix + str(num)).encode('utf8')
     h = md5(code).hexdigest()
 
     if h.startswith('00000'):
-        password += h[5]
-        
-        if len(password) == 8:
-            break
+        index = h[5]
 
-print(h)
-print(password)
+        if index in '01234567':
+            index = int(index)
+
+            if index not in password:
+                password[index] = h[6]
+
+                if len(password) == 8:
+                    break
+
+# Print the password in correct order.
+for i in range(8):
+    print(password[i], end='')
