@@ -1,44 +1,36 @@
 from collections import defaultdict, deque
 from itertools import count
 
-memory = defaultdict(tuple)
+from functools import partial
+
+# Partial can be used to create new functions.
+# buffer is now a callable thay calls deque with maxlen=2.
+buffer = partial(deque, maxlen=2)
+# Defaultdict needs a callable without args. Hence partial above.
+memory = defaultdict(buffer)
+
 nums = [2,0,1,9,5,19]
-# nums = [1,3,2]
-# nums = [3,1,2]
 
 prev = nums[0]
 for i, num in enumerate(nums):
-    memory[num] = (i, )
-    # print(f'turn {i+1}: just say {num}')
+    memory[num].append(i)
     prev = num
 
-
-def update_memory(say):
-    global memory
-    if say in memory:
-        if len(memory[say]) == 2:
-            memory[say] = (memory[say][1], i)
-        else:
-            memory[say] = (memory[say][0], i)
-    else:
-        memory[say] = (i,)
-
-
 for i in count(len(nums)):
-    if prev in memory and len(memory[prev]) == 1:
+    if len(memory[prev]) == 1:
+        # Last time it was the first time. (only 1 in memory).
         say = 0
         # print(f'turn {i+1}: memory[{prev}] = {memory[prev]} just say {say}')
-        update_memory(say)
-        prev = say
     else:
         say = memory[prev][1] - memory[prev][0]
         # print(f'turn {i+1}: prev is {prev}, {memory[prev]} say {say}')
-        update_memory(say)        
-        prev = say
-    
-    # if i+1 == 2020:
-    #     print("part1", say)
-    #     # break
+
+    memory[say].append(i)
+    prev = say
+
+    if i == 2019:
+        print("part1 2020:", say)
+        # break
     if i == 29_999_999:
-        print("part1", say)
+        print("part1 30_000_000:", say)
         break
