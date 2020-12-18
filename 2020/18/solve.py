@@ -1,19 +1,8 @@
-from collections import defaultdict, Counter
-import itertools
-from itertools import product, permutations, combinations, repeat, count
-from os import kill
-import queue
-from threading import Thread
 from collections import deque
-from decimal import Decimal
-from fractions import Fraction
-import fractions
-# import networkx
-import string
 import operator
 
-lines = open('sample.txt').read().splitlines()
-# lines = open(0).read().splitlines()
+lines = open('input.txt').read().splitlines()
+#lines = open(0).read().splitlines()
 lines = [line for line in lines if line[0] != '#']
 
 op = {
@@ -26,6 +15,7 @@ class Tree:
         self.left = None
         self.right = None
         self.this = None
+        self.brackets = False
 
     def is_leaf(self):
         return self.left == None and self.right == None
@@ -33,17 +23,28 @@ class Tree:
     def __repr__(self):
         if self.is_leaf():
             return f"{self.data}"
-        return f"({self.left if self.left is not None else ''} {self.data} {self.right if self.right is not None else ''})"
+        msg = f"({self.left if self.left is not None else ''} {self.data} {self.right if self.right is not None else ''})"
+        if self.brackets:
+            msg = f"({msg})"
+        return msg
+
+    def __str__(self):
+        return self.__repr__()
 
 def evaluate(tree):
+    # print(tree)
     if tree.left is None and tree.right is None:
         return tree.data
     operator = op[tree.data]
     left = evaluate(tree.left)
     right = evaluate(tree.right)
-    # print(f'eval: {left} {operator} {right}')
     res = operator(left, right)
-    print(tree, '=', res)
+    old_tree = str(tree)
+    # print(tree, '=', res)
+    tree.left = left
+    tree.right = right
+    # print(f'eval: {left} {operator} {right}')
+    print(tree, '=', res, "\t\t\tprev", old_tree)
     return res
 
 def step(parts):
@@ -63,6 +64,7 @@ def step(parts):
         last = deeper.pop()
         deeper.append(last.replace(')', '', 1))
         first = parser(deeper)
+        first.brackets = True
     return first, parts
 
 def parser(parts):
@@ -111,13 +113,14 @@ def parser(parts):
                 new_node.left = node.left
                 node = new_node
             else:
-                # if node to left is a node. then make it the parent and have it point to new_node to the right.
-                # 2 * 3 + [...] -> 2 * (3 + [....])
-                new_node.left = node.left.right
-                # node.left.right = new_node
-                node.data = node.left.data
-                node.right = new_node
-                node.left = node.left.left
+                if not node.left.brackets:
+                    # if node to left is a node. then make it the parent and have it point to new_node to the right.
+                    # 2 * 3 + [...] -> 2 * (3 + [....])
+                    new_node.left = node.left.right
+                    # node.left.right = new_node
+                    node.data = node.left.data
+                    node.right = new_node
+                    node.left = node.left.left
             
             # if node.right.is_leaf():
             #     new_node.right = node.right
