@@ -12,19 +12,8 @@ import fractions
 import string
 import operator
 
-# product('ABCD', repeat=2)                 -> AA AB AC AD BA BB BC BD CA CB CC CD DA DB DC DD
-# permutations('ABCD', 2)                   -> AB AC AD BA BC BD CA CB CD DA DB DC
-# combinations('ABCD', 2)                   -> AB AC AD BC BD CD
-# combinations_with_replacement('ABCD', 2)  -> AA AB AC AD BB BC BD CC CD DD
-
-# if you have multiple lines of stuff in groups, and groups seperated by empty lines.
-# groups = open(0).read().split("\n\n")
-# for group in groups:
-#     for line in group.splitlines():
-#         print(line)
-
-# lines = open('sample.txt').read().splitlines()
-lines = open(0).read().splitlines()
+lines = open('sample.txt').read().splitlines()
+# lines = open(0).read().splitlines()
 lines = [line for line in lines if line[0] != '#']
 
 op = {
@@ -38,8 +27,24 @@ class Tree:
         self.right = None
         self.this = None
 
+    def is_leaf(self):
+        return self.left == None and self.right == None
+
     def __repr__(self):
-        return f"{self.left if self.left is not None else ''} {self.data} {self.right if self.right is not None else ''}"
+        if self.is_leaf():
+            return f"{self.data}"
+        return f"({self.left if self.left is not None else ''} {self.data} {self.right if self.right is not None else ''})"
+
+def evaluate(tree):
+    if tree.left is None and tree.right is None:
+        return tree.data
+    operator = op[tree.data]
+    left = evaluate(tree.left)
+    right = evaluate(tree.right)
+    # print(f'eval: {left} {operator} {right}')
+    res = operator(left, right)
+    print(tree, '=', res)
+    return res
 
 def step(parts):
     first = parts.popleft()
@@ -91,21 +96,47 @@ def parser(parts):
         node.left = parser(left)
         node.data = operator
         node.right = parser(right)
-        # parts = deque([node, parts])
+
+        if operator == "+":
+            # print("operator +", node)
+            print(f'(+ found) left: {node.left}, right {node.right}')
+
+
+            # reorder tree
+            new_node = Tree()
+            new_node.data = operator
+            new_node.right = node.right
+            if node.left.is_leaf():
+                # if left is value. then new_node is the new node. 2 + [...]
+                new_node.left = node.left
+                node = new_node
+            else:
+                # if node to left is a node. then make it the parent and have it point to new_node to the right.
+                # 2 * 3 + [...] -> 2 * (3 + [....])
+                new_node.left = node.left.right
+                # node.left.right = new_node
+                node.data = node.left.data
+                node.right = new_node
+                node.left = node.left.left
+            
+            # if node.right.is_leaf():
+            #     new_node.right = node.right
+            # else:
+            #     new_node.right = node.right.left
+            #     node.right.left = new_node
+
+            # if not node.left.is_leaf():
+            #     node.data = node.left.data
+                # node.left.right = node.right
+            # elif not node.right.is_leaf():
+            #     node.data = node.right.data
+
+            print(f'reordered: left: {node.left}, data: {node.data}, right: {node.right}')
+
         parts.appendleft(node)
         return parser(parts)
     assert False
 
-def evaluate(tree):
-    if tree.left is None and tree.right is None:
-        return tree.data
-    operator = op[tree.data]
-    left = evaluate(tree.left)
-    right = evaluate(tree.right)
-    # print(f'eval: {left} {operator} {right}')
-    res = operator(left, right)
-    print(tree, '=', res)
-    return res
 
 tot = 0
 for line in lines:
@@ -120,4 +151,4 @@ for line in lines:
 print(tot)
 
 
-# 1038000279625 is too low.
+# part 2 393081165162226 is too high
