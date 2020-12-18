@@ -68,18 +68,13 @@ def step(parts):
     return first, parts
 
 def parser(parts):
-    # result = Tree()
-    # print(f'parser: {parts}')
     if isinstance(parts, Tree):
         return parts
     if isinstance(parts, str):
         node = Tree()
-        # node.data = parts
         node.data = int(parts.replace('(', '').replace(')', ''))
         return node
     if len(parts) == 1:
-        # node = Tree()
-        # node.data = parts.pop()
         return parts[0]
     if len(parts) >= 3:
         left = parts.popleft()
@@ -100,11 +95,9 @@ def parser(parts):
         node.right = parser(right)
 
         if operator == "+":
-            # print("operator +", node)
             print(f'(+ found) left: {node.left}, right {node.right}')
 
-
-            # reorder tree
+            # reorder tree to give + precedence over *.
             new_node = Tree()
             new_node.data = operator
             new_node.right = node.right
@@ -113,6 +106,8 @@ def parser(parts):
                 new_node.left = node.left
                 node = new_node
             else:
+                # make sure we dont reorder in the case that the left part is in brackets.
+                # (2 * 3) + [...] -> (2 * 3) + [...]
                 if not node.left.brackets:
                     # if node to left is a node. then make it the parent and have it point to new_node to the right.
                     # 2 * 3 + [...] -> 2 * (3 + [....])
@@ -122,18 +117,6 @@ def parser(parts):
                     node.right = new_node
                     node.left = node.left.left
             
-            # if node.right.is_leaf():
-            #     new_node.right = node.right
-            # else:
-            #     new_node.right = node.right.left
-            #     node.right.left = new_node
-
-            # if not node.left.is_leaf():
-            #     node.data = node.left.data
-                # node.left.right = node.right
-            # elif not node.right.is_leaf():
-            #     node.data = node.right.data
-
             print(f'reordered: left: {node.left}, data: {node.data}, right: {node.right}')
 
         parts.appendleft(node)
@@ -143,7 +126,6 @@ def parser(parts):
 
 tot = 0
 for line in lines:
-    # line = line[::-1]
     print("line:", line)
     tree = parser(deque(line.split()))
     print("tree:", tree)
@@ -152,6 +134,3 @@ for line in lines:
     print()
     tot += value
 print(tot)
-
-
-# part 2 393081165162226 is too high
