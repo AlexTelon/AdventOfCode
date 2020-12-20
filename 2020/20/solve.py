@@ -1,3 +1,4 @@
+import pickle
 import math
 from collections import defaultdict, Counter
 import copy
@@ -20,7 +21,7 @@ import operator
 
 # groups = open(0).read().split("\n\n")
 groups = open('input.txt').read().split("\n\n")
-# groups = open('sample.txt').read().split("\n\n")
+# groups = open('sample2.txt').read().split("\n\n")
 # lines = open(0).read().splitlines()
 # # lines = [[int(x) for x in line.split()] for line in lines]
 # for line in lines:
@@ -168,8 +169,6 @@ def get_edge(grid, dir):
         (-1, 0): lambda: grid.rows[0],  # top edge
         (0, 1):  lambda: grid.col(-1),  # right edge
         (0, -1): lambda: grid.col(0),   # left edge
-        # (0, 1):  lambda: rotate(grid).rows[-1][::-1],   # right edge
-        # (0, -1): lambda: rotate(grid).rows[0][::-1],    # left edge
     }
     return direction[dir]()
 
@@ -181,17 +180,17 @@ def get_edge(grid, dir):
 # exit()
 placement = {}
 
-def is_valid(r,c):
-    this = placement[(r,c)]
-    for other_pos in neighbours(r,c):
-        our_dir = (other_pos[0] - r, other_pos[1] - c)
-        their_dir = (-our_dir[0], -our_dir[1])
-        our_edge = get_edge(this, our_dir)
-        their_edge = get_edge(placement[other_pos], their_dir)
+# def is_valid(r,c):
+#     this = placement[(r,c)]
+#     for other_pos in neighbours(r,c):
+#         our_dir = (other_pos[0] - r, other_pos[1] - c)
+#         their_dir = (-our_dir[0], -our_dir[1])
+#         our_edge = get_edge(this, our_dir)
+#         their_edge = get_edge(placement[other_pos], their_dir)
         
-        if our_edge != their_edge:
-            return False
-    return True
+#         if our_edge != their_edge:
+#             return False
+#     return True
 # placement[(5,5)] = grids[0]
 # placement[(5,6)] = grids[1] # right
 # placement[(6,5)] = grids[2] # under
@@ -206,33 +205,12 @@ def all_possible(grids):
         for this in variations(grid):
             yield this
 
-# def valid_above(this, all):
-#     valid = []
-#     # (1, 0):  lambda: grid.rows[-1],                 # bottom edge (rows goe down)
-#     # (-1, 0): lambda: grid.rows[0],                  # top edge
-#     # (0, 1):  lambda: rotate(grid).rows[-1][::-1],   # right edge
-#     # (0, -1): lambda: rotate(grid).rows[0][::-1],    # left edge
-
-#     our_dir = (-1, 0)
-#     our_edge = get_edge(this, our_dir)
-#     their_dir = (-our_dir[0], -our_dir[1])
-
-#     for other in all:
-#         their_edge = get_edge(other, their_dir)
-#         if our_edge == their_edge:
-#             valid.append(other.ID)
-    
-#     if this.ID in valid:
-#         valid.remove(this.ID)
-
-#     return valid
-
 def valid_in_direction(this, all, dir):
     valid = set()
-    # (1, 0):  lambda: grid.rows[-1],                 # bottom edge (rows goe down)
-    # (-1, 0): lambda: grid.rows[0],                  # top edge
-    # (0, 1):  lambda: rotate(grid).rows[-1][::-1],   # right edge
-    # (0, -1): lambda: rotate(grid).rows[0][::-1],    # left edge
+    # (1, 0): # bottom edge (rows goes down)
+    # (-1, 0):# top edge
+    # (0, 1): # right edge
+    # (0, -1):# left edge
     our_edge = get_edge(this, dir)
     their_dir = (-dir[0], -dir[1])
 
@@ -262,54 +240,164 @@ tot = 0
 # Corners need only 2 possible neighbours, all other must have 3 or 4. lets hope there are 4 with only 2 possible neighbours
 corners = []
 stuff = {}
-all = list(all_possible(grids))
+all_possible = list(all_possible(grids))
 bottom_right = defaultdict(set)
 top_left = defaultdict(set)
+
+valid_around = defaultdict(dict)
 
 # (1, 0): # bottom edge (rows goe down)
 # (-1, 0):# top edge
 # (0, 1): # right edge
 # (0, -1):# left edge
-for this in grids:
-    for this in variations(this):
-        above = valid_above(this,all)
-        left = valid_left(this,all)
-        right = valid_right(this,all)
-        below = valid_below(this,all)
+
+try:
+    with open("pickledump.txt", "rb") as f:
+        valid_around = pickle.load(f)
+except:
+    for this in grids:
+        for this in variations(this):
+            above = valid_above(this, all_possible)
+            left = valid_left(this, all_possible)
+            right = valid_right(this, all_possible)
+            below = valid_below(this, all_possible)
+            
+            valid_around[this.ID]['right'] = valid_right(this, all_possible)
+            valid_around[this.ID]['left'] = valid_left(this, all_possible)
+            valid_around[this.ID]['above'] = valid_above(this, all_possible)
+            valid_around[this.ID]['below'] = valid_below(this, all_possible)
+
+    with open("pickledump.txt", "wb") as f:
+        pickle.dump(valid_around, f)
+
+# Part2 find the sea monsters
+# For this we need to build the full image.
+# First lets solve where each grid should be placed
+
+# who references me?
+links_to_id = defaultdict(set)
+for this_id, valid in valid_around.items():
+    for other_id in chain(*valid.values()):
+        links_to_id[other_id].add(this_id)
+
+def remove_me(id, others):
+    # global links_to_id
+    # remove references to id from others
+    for other in links_to_id[id]:
+        for k, v in valid_around[other].items():
+            if id in v:
+                valid_around[other][k].remove(id)
+    # for _, valid_to in others.items():
+    #     for k, v in valid_to.items():
+    #         if id in v:
+    #             valid_to[k].remove(id)
+    # remove id
+    del others[id]
+    # for k,v in valid_around[id]:
+    #     links_to_id[k].remove(id)
+    # del links_to_id[id]
+
+def valid_position(pos):
+    return all(0 <= p <= 12 for p in pos)
+
+direction_str_to_tuple = {
+    'left':  (0, -1),
+    'right': (0, 1),
+    'below': (1, 0),
+    'above': (-1, 0),
+}
+
+candidates = deque()
+top_left = -1
+for id, valid_to in valid_around.items():
+    if not any(valid_to['left']):
+        if not any(valid_to['above']):
+            # top left
+            candidates.append(((0,0), id))
+        if not any(valid_to['below']):
+            # bottom left
+            candidates.append(((11,0), id))
+    if not any(valid_to['right']):
+        if not any(valid_to['above']):
+            # top right
+            candidates.append(((0,11), id))
+        if not any(valid_to['below']):
+            # bottom right
+            candidates.append(((11,11), id))
+
+# These is a unique solution. 
+# So go through all and place the must-have pieces. remove links and then place the new must-have pieces.
+
+
+
+current = None
+pos = None
+placement = {}
+
+# candidates = deque([(pos, current)])
+iterations = 0
+while any(candidates):
+    print()
+    print('placements')
+    for k,v in placement.items():
+        print("     ",k,v)
+    iterations += 1
+
+    # find the one with the least number of links to it?
+    links = {(pos, candidate):links_to_id[candidate] for pos, candidate in candidates}
+    smallest = math.inf
+    candidate = None
+    for (p, id),v in links.items():
+        if len(v) < smallest:
+            smallest = len(v)
+            pos, current = p, id
+    candidates.remove((pos,current))
+    print(f"smallest candidate is {pos=} {current=} with len: {smallest}")
+        # print(id,v)
+    # pos, current = candidates.popleft()
+    # print(f'{pos=}, {current=}')
+    if pos in placement:
+        print('oups', pos)
+    placement[pos] = current
+
+    if current == 1511:
+        print('now')
         
-        bottom_right[this.ID].update(above)
-        bottom_right[this.ID].update(left)
+    print('add candidates')
+    for dir, valid in valid_around[current].items():
+        if any(valid):
+            print(f"    {dir}, {valid} of {pos}")
 
-        top_left[this.ID].update(below)
-        top_left[this.ID].update(right)
+    for dir, valid in valid_around[current].items():
+        if len(valid) == 1:
+            candidate = valid.pop()
+            diff = direction_str_to_tuple[dir]
+            new_pos = (pos[0] + diff[0], pos[1] + diff[1])
+            if valid_position(new_pos):
+                if new_pos in placement:
+                    print(f'dont add {candidate}: {pos} + {diff} == {new_pos}')
+                else:
+                    print(f'adding ({new_pos}, {candidate})')
+                    candidates.append((new_pos, candidate))
+        
+
+    remove_me(current, valid_around)
+    links_to_id = defaultdict(set)
+    for this_id, valid in valid_around.items():
+        for other_id in chain(*valid.values()):
+            links_to_id[other_id].add(this_id)
+
+    # print('batman count', links_to_id[2999])
+    assert not any(links_to_id[current])
+    # for k,v in links_to_id.items():
+    #     if len(v) == 2:
+    #         print(f'next one should be {k}:{v}')
+    print(f'candidate: {candidates}')
 
 
-print('bottom_right')
-for k,v in bottom_right.items():
-    if len(v) == 2:
-        print(k,v)
 
-print("top_left")
-for k,v in top_left.items():
-    if len(v) == 2:
-        print(k,v)
-
-print("bottom_left")
-for k,v in top_left.items():
-    if len(v) == 2:
-        print(k,v)
-# they have the same keys so I suspect these 4 are our corners
-# correct!
-print("part1 hack:", math.prod(top_left.keys()))
-
-# print(len(count.keys()))
-# for k,v in stuff.items():
-#     if len(v) != 0:
-#         print(k,v)
-
-# for y in range(12):
-#     for x in range(12):
-#         for option in variations(grids[y * 12 + x]):
-#             print(option)
-#             tot += 1
-# print(tot)
+print('iterations: ', iterations)
+print('left: ', len(valid_around))
+print('placed: ', len(placement))
+print(placement)
+# start with top left. it has no valid to 
