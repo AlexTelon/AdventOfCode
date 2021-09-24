@@ -394,7 +394,15 @@ while any(candidates):
     #         print(f'next one should be {k}:{v}')
     print(f'candidate: {candidates}')
 
-
+print("FINAL")
+for k,v in links_to_id.items():
+    if len(v) == 1:
+        print(f"{v} link to {k}")
+        first = v.pop()
+        if first in placement:
+            print(f"{first} in placement")
+    # if len(v) == 2:
+    #     print(f'next one should be {k}:{v}')
 
 print('iterations: ', iterations)
 print('left: ', len(valid_around))
