@@ -1,0 +1,35 @@
+Tile 1337:
+123
+456
+789
+
+Tile 420:
+abc0
+...1
+...2
+abc3
+
+Tile 0:
+ttt
+l.r
+bbb
+
+Tile 1:
+t..
+r..
+b..
+
+Tile 2:
+bbb
+...
+...
+
+Tile 3:
+..t
+..l
+..b
+
+Tile 4:
+...
+...
+ttt
