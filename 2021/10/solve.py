@@ -2,37 +2,19 @@ from collections import deque
 
 lines = open('input.txt').read().splitlines()
 
+OPENERS = '([{<'
+to_close = {
+    '(': ')',
+    '[': ']',
+    '{': '}',
+    '<': '>',
+}
 scores = {
     ')': 3,
     ']': 57,
     '}': 1197,
     '>': 25137,
 }
-scores2 = {
-    ')': 1,
-    ']': 2,
-    '}': 3,
-    '>': 4,
-}
-OPENERS = '([{<'
-
-def to_close(c):
-    t = {
-        '(': ')',
-        '[': ']',
-        '{': '}',
-        '<': '>',
-    }
-    return t[c]
-
-def to_open(c):
-    t = {
-        ')': '(',
-        ']': '[',
-        '}': '{',
-        '>': '<',
-    }
-    return t[c]
 
 p1 = 0
 p2_scores = []
@@ -47,24 +29,21 @@ for line in lines:
             # If current char closes a pair, then on top of the stack we should find the corresponding opener!
             out = stack.pop()
         
-            if to_close(out) != c:
-                # syntax error!
+            syntax_err = to_close[out] != c
+            if syntax_err:
                 p1 += scores[c]
-                syntax_err = True
-                continue
+                break
     
-    if len(stack) != 0 and not syntax_err:
-        # Incomplete if there are still things left in the stack without syntax error abort.
-        
+    incomplete = len(stack) > 0 and not syntax_err
+    if incomplete:
         # How to apply a fix.
-        fix = [to_close(c) for c in reversed(stack)]
+        fix = [to_close[c] for c in reversed(stack)]
 
-        # Scoore of said fix.
+        # Score of said fix.
         score = 0
-        for i, c in enumerate(fix):
+        for c in fix:
             score *= 5
-            score += scores2[c]
-
+            score += ' )]}>'.index(c)
         p2_scores.append(score)
 
 print('p1', p1)
