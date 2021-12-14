@@ -3,10 +3,12 @@ from itertools import pairwise
 
 template, rules_lines = open('input.txt').read().split("\n\n")
 
+# Count of all letters. We will ensure to update this each iteration.
 letter_count = defaultdict(int)
 for c in template:
     letter_count[c] = template.count(c)
 
+# Count of how many times each rule can be applied.
 rules = dict(rule.strip().split(' -> ') for rule in rules_lines.splitlines())
 rule_counts = defaultdict(int)
 for a,b in pairwise(template + '_'):
@@ -14,12 +16,14 @@ for a,b in pairwise(template + '_'):
         rule_counts[a+b] += 1
 
 def get_ans(letter_count):
+    """Help function that outputs the diff between the most and least common letter counts."""
     items = sorted(letter_count.items(), key=lambda x: x[1], reverse=True)
     _, most = items[0]
     _, least = items[-1]
     return (most - least)
 
 def apply_once(rule_counts):
+    """Applies all rules once to the template. Returns a new rule_count."""
     new_counts = defaultdict(int)
     for pair, amount in rule_counts.items():
         if pair in rules:
