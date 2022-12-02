@@ -1,22 +1,3 @@
-from collections import defaultdict, Counter
-import itertools
-from itertools import product, permutations, combinations, repeat, count
-import queue
-from threading import Thread
-from collections import deque
-from decimal import Decimal
-from fractions import Fraction
-import fractions
-# import networkx
-import string
-import operator
-import re
-
-from aocd import submit
-
-# nums = '       12 13 a 1'
-# nums = re.findall(r'-?\d+', nums)
-
 with open('input.txt', 'r') as f:
     lines = f.read().splitlines()
 
@@ -46,6 +27,5 @@ for line in lines:
         t += 6
     elif me == elf:
         t += 3
-    # print(elf, me, w)
 
-submit(t)
+print(t)
