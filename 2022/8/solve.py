@@ -1,7 +1,7 @@
 from functools import partial
 import math
 
-with open('input.txt'), 'r') as f:
+with open('input.txt') as f:
     lines = f.read().splitlines()
 
 grid = []
