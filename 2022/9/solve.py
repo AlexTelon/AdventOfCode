@@ -1,20 +1,20 @@
 from itertools import pairwise
 from math import dist
 
-with open('input.txt', 'r') as f:
+# with open('input.txt', 'r') as f:
 # with open('sample.txt', 'r') as f:
-# with open('larger_example.txt', 'r') as f:
+with open('larger_example.txt', 'r') as f:
     lines = f.read().splitlines()
 
 def print_grid(hx,hy, tail):
     def draw(x,y):
-        if (x,y) == (0, 0):
-            return 's'
         if (x,y) == (hx, hy):
             return 'H'
         for i, pos in enumerate(tail, start=1):
             if (x,y) == pos:
                 return str(i)
+        if (x,y) == (0, 0):
+            return 's'
         return '#' if (x,y) in seen else '.'
 
     if seen:
@@ -25,13 +25,13 @@ def print_grid(hx,hy, tail):
         for y in range(min(Y), max(Y)+1):
             lines.append(''.join([draw(x,y) for x in range(min(X), max(X)+1)]))
 
-        for line in lines[::-1]:
+        for line in lines:
             print(line)
 
 
 directions = {
-    'U': (0, 1),
-    'D': (0, -1),
+    'U': (0, -1),
+    'D': (0, 1),
     'L': (-1, 0),
     'R': (1, 0),
 }
