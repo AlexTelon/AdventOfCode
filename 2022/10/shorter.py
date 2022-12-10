@@ -2,7 +2,7 @@ with open('input.txt', 'r') as f:
     lines = f.read().splitlines()
 
 x = 1
-i = 1
+i = 0
 p1 = []
 display = ['_' for _ in range(40*6)]
 
@@ -10,10 +10,10 @@ for line in lines:
     cycles = 1 if 'noop' in line else 2
 
     for _ in range(cycles):
-        if i == 20 or ((i - 20) % 40 == 0):
+        if (i+1) == 20 or (((i+1) - 20) % 40 == 0):
             p1.append(i * x)
 
-        display[i-1] = '#' if (((i-1) % 40)) in [x-1, x+0, x+1] else ' '
+        display[i] = '#' if (((i) % 40)) in [x-1, x+0, x+1] else ' '
         i += 1
 
     match line.split():
