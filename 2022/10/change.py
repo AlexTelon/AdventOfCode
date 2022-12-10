@@ -1,18 +1,20 @@
-with open('input.txt', 'r') as f:
-    lines = f.read().splitlines()
+content = open('input.txt').read()
+content = content.replace('noop','i+=1')
+content = content.replace('addx','i+=1\ni+=1;x+=')
+lines = content.splitlines()
 
-program = ['i=1', 'x=1']
-for line in lines:
-    if line == 'noop':
-        program.append('i+=1')
-    else:
-        d = line.split()[-1]
-        program.append('i+=1')
-        program.append(f'i+=1;x+={d}')
-
-p1 = []
-for instruction in program:
+i=1
+x=1
+display = ['_' for _ in range(40*6)]
+p1 = 0
+for instruction in lines:
+    display[i-1] = '#' if ((i-1) % 40) in [x-1, x, x+1] else ' '
     exec(instruction)
-    exec('if i == 20 or ((i - 20) % 40 == 0):p1 += [i*x]')
+    if i == 20 or ((i - 20) % 40 == 0):
+        p1 += i*x
 
-print(p1, sum(p1))
+print('p1', p1)
+for i, c in enumerate(display):
+    print(end=c)
+    if i % 40 == 39:
+        print()
