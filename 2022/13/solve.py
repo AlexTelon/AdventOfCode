@@ -20,12 +20,8 @@ def larger_than(A: str, B: str):
     else:                 return 0
 
 pairs = open('input.txt').read().split('\n\n') + ['[[6]] [[2]]']
-lines = []
-part1 = 0
-for i, pair in enumerate(map(str.split, pairs), start=1):
-    if not larger_than(*pair) == 1:
-        part1 += i
-    lines.extend(pair)
+lines = [line for pair in map(str.split,pairs) for line in pair]
+print(sum(0 if larger_than(*pair) == 1 else i for i, pair in enumerate(zip(lines[::2], lines[1::2]))))
 
 lines.sort(key=cmp_to_key(larger_than))
-print(part1, (lines.index('[[6]]')+1) * (lines.index('[[2]]')+1))
+print((lines.index('[[6]]')+1) * (lines.index('[[2]]')+1))
