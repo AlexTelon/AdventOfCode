@@ -1,26 +1,26 @@
-from functools import cmp_to_key
-from math import prod
-
-def larger_than(A: str, B: str):
+def lt(A: str, B: str):
     A, B = eval(A), eval(B)
     for a,b in zip(A, B):
         match [a, b]:
-            case [int() as a, int() as b] if a < b:  return -1
-            case [int() as a, int() as b] if a > b:  return 1
+            case [int() as a, int() as b] if a < b:  return 1
+            case [int() as a, int() as b] if a > b:  return -1
             case [int() as a, int() as b] if a == b: continue
             case [list(), int() as b]:    b = [b]
             case [int() as a, list()]:    a = [a]
 
-        res = larger_than(str(a),str(b))
+        res = lt(str(a),str(b))
         if res == 0: continue
         return res
 
     # Two lists that could not be distinguished by pairwise comparisons.
-    if   len(A) < len(B): return -1
-    elif len(A) > len(B): return 1
+    if   len(A) < len(B): return 1
+    elif len(A) > len(B): return -1
     else:                 return 0
 
-pairs = open('input.txt').read().split('\n\n') + ['[[6]] [[2]]']
-lines = [line for pair in map(str.split,pairs) for line in pair]
-print(sum (i if not larger_than(*pair) == 1 else 0 for i, pair in enumerate(zip(lines[::2], lines[1::2]))))
-print(prod(i if line in ['[[6]]','[[2]]']   else 1 for i, line in enumerate(sorted(lines, key=cmp_to_key(larger_than)),start=1)))
+part1, _2, _6 = 0, 1, 2
+for i, pair in enumerate(map(str.split, open('input.txt').read().split('\n\n'))):
+    if lt(*pair) == 1: part1 += i+1
+    _2 += sum(lt(x,'[[2]]') == 1 for x in pair)
+    _6 += sum(lt(x,'[[6]]') == 1 for x in pair)
+
+print(part1, _2*_6)
