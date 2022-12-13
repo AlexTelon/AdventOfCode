@@ -19,9 +19,8 @@ def larger_than(A: str, B: str):
     elif len(A) > len(B): return 1
     else:                 return 0
 
-pairs = open('input.txt').read().split('\n\n')
-lines = ['[[2]]', '[[6]]']
-
+pairs = open('input.txt').read().split('\n\n') + ['[[6]] [[2]]']
+lines = []
 part1 = 0
 for i, pair in enumerate(map(str.split, pairs), start=1):
     if not larger_than(*pair) == 1:
