@@ -3,20 +3,21 @@ from functools import cmp_to_key
 def larger_than(A: str, B: str):
     A, B = eval(A), eval(B)
     for a,b in zip(A, B):
-        if (type(a) == int) and (type(b) == int):
-            if   a < b: return -1
-            elif a > b: return 1
-            else: continue
-
-        if (type(a) == list) ^ (type(b) == list):
-            if type(a) == int: a = [a]
-            if type(b) == int: b = [b]
+        match a, b:
+            case [int(), int()]:
+                if   a < b: return -1
+                elif a > b: return 1
+                else: continue
+            case [list(), int() as b]:
+                b = [b]
+            case [int() as a, list()]:
+                a = [a]
 
         res = larger_than(str(a),str(b))
         if res == 0: continue
         return res
 
-    if type(A) == list and type(B) == list:
+    if (type(A) == list) and (type(B) == list):
         if   len(A) < len(B): return -1
         elif len(A) > len(B): return 1
         else:                 return 0
