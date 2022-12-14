@@ -1,14 +1,12 @@
-def lt(A: str, B: str):
-    A, B = eval(A), eval(B)
+def lt(A, B):
     for a,b in zip(A, B):
         match [a, b]:
             case [int() as a, int() as b] if a < b:  return 1
             case [int() as a, int() as b] if a > b:  return -1
             case [int() as a, int() as b] if a == b: continue
-            case [list(), int() as b]:    b = [b]
-            case [int() as a, list()]:    a = [a]
-
-        res = lt(str(a),str(b))
+            case [list(), int() as b]:       b = [b]
+            case [int() as a, list()]:       a = [a]
+        res = lt(a,b)
         if res == 0: continue
         return res
 
@@ -19,8 +17,9 @@ def lt(A: str, B: str):
 
 part1, _2, _6 = 0, 1, 2
 for i, pair in enumerate(map(str.split, open('input.txt').read().split('\n\n'))):
-    if lt(*pair) == 1: part1 += i+1
-    _2 += sum(lt(x,'[[2]]') == 1 for x in pair)
-    _6 += sum(lt(x,'[[6]]') == 1 for x in pair)
+    l, r = map(eval, pair)
+    if lt(l,r) == 1: part1 += i+1
+    _2 += sum(lt(x,[[2]]) == 1 for x in (l,r))
+    _6 += sum(lt(x,[[6]]) == 1 for x in (l,r))
 
 print(part1, _2*_6)
