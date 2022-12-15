@@ -1,5 +1,3 @@
-from time import perf_counter
-t1_start = perf_counter()
 from collections import deque
 from itertools import pairwise, product
 
