@@ -1,24 +1,20 @@
 from collections import defaultdict
+from itertools import pairwise
 import math
-from aocd import submit
 
 grid = defaultdict()
-sensors = {}
 SENSORS = {}
 beacons = set()
-distances = []
 
 free = set()
 
-# lines = open('sample.txt').read().splitlines(); MAGIC_ROW = 10
-lines = open('in.txt').read().splitlines(); MAGIC_ROW = 2_000_000
+lines = open('sample.txt').read().splitlines(); MAGIC_ROW = 10; MAX_DIM = 20
+# lines = open('in.txt').read().splitlines(); MAGIC_ROW = 2_000_000; MAX_DIM = 4_000_000
 
 def dist(a, b):
     x,y = a
     xx,yy = b
-
     return abs(xx-x) + abs(yy-y)
-    # return math.dist(a,b)
 
 
 t = 0
@@ -28,52 +24,75 @@ for line in lines:
     grid[nearest_beacon] = 'B'
 
     d = dist(sensor, nearest_beacon)
-    print(d, math.dist(sensor, nearest_beacon))
 
     x,y = sensor
-    dist_to_row = dist((x, MAGIC_ROW), sensor)
-    # print(dist_to_row, math.dist((x, MAGIC_ROW), sensor))
-    if dist_to_row <= d:
-        SENSORS[sensor] = ((d - dist_to_row))
+    SENSORS[sensor] = d
 
-    sensors[sensor] = d
     beacons.add(nearest_beacon)
 
-    distances.append(d)
 
-seen = set()
-for (x,y), d in SENSORS.items():
-    d = int(d)
-    derp = range(x-d, x+d+1)
-    # for xx in range(x-d, x+d+1):
-    #     assert(dist((xx, y), (x,y)) <= d)
+# for y in range(3349000, MAX_DIM+1):
+for y in range(0, MAX_DIM+1):
+    if y % 1000 == 0:
+        print(y, f"{y/MAX_DIM:%}")
+    # seen = set()
+    # row = set(range(0, MAX_DIM+1))
+    ranges = []
+    # scanned = set()
+    for (sx, sy), d in SENSORS.items():
+        dy = abs(sy - y)
+        if d > dy:
+            dx = d - dy
+            ranges.append((max(0,sx-dx), min(MAX_DIM+1, sx+dx+1)))
 
-    # assert(dist((x-d-1, y), (x,y)) > d)
-    # assert(dist((x+d+2, y), (x,y)) > d)
+    ranges.append((MAX_DIM, MAX_DIM+10))
 
-    for x in derp:
-        seen.add(x)
+    ranges = sorted(ranges)
+    LO = ranges[0][0]
+    if LO > 0:
+        print('found it! lo', LO, y)
+        exit()
+    HI = 0
+    for (lo,hi), (lo2, hi2) in pairwise(ranges):
+        HI = max(HI, hi)
+        if HI < lo2:
+            print('found it! hi', HI, y)
+            exit()
 
-    print(derp)
 
-    # seen.append(derp)
+    # found it! 3418492 3349056
 
-# seen = set().union(*seen)
+    # not 11448721143552
 
-seen -= set(x for x,y in beacons if y == MAGIC_ROW)
-print(len(seen))
+    # missing = row - scanned
+    # if missing:
+    #     print(missing, y)
+    #     exit()
+    continue
+    for x in range(0, MAX_DIM+1):
+        print(end='#' if x in scanned else '.')
+        # if (x,y) == (14, 11):print(end='X')
+        # else:print(end='#' if x in row else '.')
+    print()
+    # seen |= set(x for x,y in beacons if y)
+    # # print(*set(range(0, MAX_X+1)))
+    # # print(*seen)
+    # # print()
 
-for x in range(-6, 30):
-    if x == 0:
-        print(end=str(x))
-    if x == 25:
-        print(end='v')
-    else:
-        print(end=' ')
-print()
-for x in range(-6, 30):
-    print(end='#' if x in seen else '.')
+    # free = set(range(0, MAX_DIM+1)) - seen
+    # if any(row):
+    #     print(row, y)
 
-# not 5470703
-# not 6393843
-# not 6920669
+    # if min(seen) > 0 or max(seen) < 20:
+    # print(len(seen))
+
+# for x in range(-6, 30):
+#     if x == 0:
+#         print(end=str(x))
+#     if x == 25:
+#         print(end='v')
+#     else:
+#         print(end=' ')
+# print()
+# for x in range(-6, 30):
+#     print(end='#' if x in seen else '.')
