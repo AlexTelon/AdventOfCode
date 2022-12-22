@@ -1,11 +1,8 @@
 from collections import defaultdict
 import re
-ggrid, instructions = open('in.txt').read().split('\n\n')
-# ggrid, instructions = open('sample.txt').read().split('\n\n')
-# ggrid, instructions = open('sample2.txt').read().split('\n\n')
+ggrid, instructions = open('in.txt').read().split('\n\n'); SIDE_D = 50
 
-instructions = re.findall(r'\d+[LRN]', instructions.strip()
-+'N')
+instructions = re.findall(r'\d+[LRN]', instructions.strip()+'N')
 instructions = [(steps:=int(inst[:-1]), rot:=inst[-1]) for inst in instructions]
 
 dirs = {
@@ -21,126 +18,154 @@ dirs_to_chr = {
     (-1, 0): '<',
 }
 
+def pos_to_side(x,y):
+    return x // SIDE_D + (y // SIDE_D) * 3
+
+def side_to_pos(side):
+    x = side % 3 * SIDE_D
+    y = side // 3 * SIDE_D
+    return x, y
+
+def rotate_right(dx, dy):
+    return -dy, dx
+
+def rotate_left(dx, dy):
+    return dy, -dx
+
 X, Y = None, None
 facing = dirs['>']
 
 grid = defaultdict(lambda: ' ')
+sides = defaultdict(lambda: defaultdict(lambda: ' '))
 for y, line in enumerate(ggrid.splitlines()):
     for x, c in enumerate(line):
+        side = pos_to_side(x,y)
+
         if c in '.#':
             grid[(x,y)] = c
-
+            sides[side][(x % SIDE_D, y % SIDE_D)] = c
             if X == None:
                 X, Y = x, y
-    #     print(end=c)
-    # print()
+assert {len(v) for v in sides.values()} == {SIDE_D*SIDE_D}
+
 
 def try_move(x,y, dx,dy):
     original = (x,y)
+    original_face = (dx,dy)
 
     x += dx
     y += dy
-
     if (x,y) in grid:
         if grid[(x,y)] == '.':
-            return (x,y)
+            # can move, so move.
+            return (x,y), (dx,dy)
         if grid[(x,y)] == '#':
             # cant move, move back to original and return that.
-            return original
+            return original, (dx,dy)
 
-    x -= dx
-    y -= dy
-    # Move in reverse direction until we end up outside, then check again.
-    if dy == 0:
-        while grid[(x,y)] != ' ':
-            x -= dx
-    if dx == 0:
-        while grid[(x,y)] != ' ':
-            y -= dy
+    # move around an edge!
+    x, y = original
+    current_side = pos_to_side(x,y)
+    face = dirs_to_chr[(dx,dy)] # ><v^
 
-    if is_next_wall(x,y,dx,dy):
-        return original
-    return try_move(x,y, dx, dy)
+    xx = x % SIDE_D
+    yy = y % SIDE_D
+    if current_side == 1:
+        if   face == '>': next_side = 2; xx = SIDE_D - 1 - xx
+        elif face == '<': next_side = 6; yy = SIDE_D - 1 - yy; face = '>'
+        elif face == 'v': next_side = 4; yy = SIDE_D - 1 - yy
+        elif face == '^': next_side = 9; xx, yy = yy, xx; face = '>'
+    elif current_side == 2:
+        if   face == '>': next_side = 7; yy = SIDE_D - 1 - yy; face = '<'
+        elif face == '<': next_side = 1; xx = SIDE_D - 1 - xx
+        elif face == 'v': next_side = 4; xx, yy = yy, xx; face = '<'
+        elif face == '^': next_side = 9; yy = SIDE_D - 1 - yy
+    elif current_side == 4:
+        if   face == '>': next_side = 2; xx, yy = yy, xx; face = '^'
+        elif face == '<': next_side = 6; xx, yy = yy, xx; face = 'v'
+        elif face == 'v': next_side = 7; yy = SIDE_D - 1 - yy
+        elif face == '^': next_side = 1; yy = SIDE_D - 1 - yy
+    elif current_side == 6:
+        if   face == '>': next_side = 7; xx = SIDE_D - 1 - xx
+        elif face == '<': next_side = 1; yy = SIDE_D - 1 - yy; face = '>'
+        elif face == 'v': next_side = 9; yy = SIDE_D - 1 - yy
+        elif face == '^': next_side = 4; xx, yy = yy, xx; face = '>'
+    elif current_side == 7:
+        if   face == '>': next_side = 2; yy = SIDE_D - 1 - yy; face = '<'
+        elif face == '<': next_side = 6; xx = SIDE_D - 1 - xx
+        elif face == 'v': next_side = 9; xx, yy = yy, xx; face = '<'
+        elif face == '^': next_side = 4; yy = SIDE_D - 1 - yy
+    elif current_side == 9:
+        if   face == '>': next_side = 7; xx, yy = yy, xx; face = '^'
+        elif face == '<': next_side = 1; xx, yy = yy, xx; face = 'v'
+        elif face == 'v': next_side = 2; yy = SIDE_D - 1 - yy
+        elif face == '^': next_side = 6; yy = SIDE_D - 1 - yy
+    else:
+        assert False
 
-def is_next_wall(x,y, dx, dy):
-    x += dx
-    y += dy
+    facing = dirs[face]
+    xx %= SIDE_D
+    yy %= SIDE_D
 
-    if (x,y) in grid:
-        return grid[(x,y)] == '#'
+    if sides[next_side][(xx,yy)] == '#':
+        # failed so return original everything
+        return original, original_face
+
+    x, y = side_to_pos(next_side)
+    return (x+xx, y+yy), facing
 
 
-    x -= dx
-    y -= dy
-    # Move in reverse direction until we end up outside, then check again.
-    if dy == 0:
-        while grid[(x,y)] != ' ':
-            x -= dx
-    if dx == 0:
-        while grid[(x,y)] != ' ':
-            y -= dy
-
-    return is_next_wall(x,y, dx, dy)
-
-print(f'start pos {X=} {Y=} {facing=}')
 path = {}
-
-def debug_draw():
+def debug_draw(all=False):
     def pixel(x,y):
+        if (x,y) == (X,Y):
+            return "\033[91m" + dirs_to_chr[facing] + "\033[0m"
+        if (x,y) in latest:
+            return "\033[92m" + latest[(x,y)] + "\033[0m"
         if (x,y) in path:
-            return path[(x,y)]
+            return "\033[93m" + path[(x,y)] + "\033[0m"
         if (x,y) in grid:
-            return grid[(x,y)]
+            c = str(pos_to_side(x,y)) if grid[(x,y)] == '.' else grid[(x,y)]
+            if c == '#': return c
+            return "\033[90m" + c + "\033[0m"
         return ' '
 
     width  = max([x for x,y in grid])
     height = max([y for x,y in grid])
 
-    height2 = max([y for x,y in path]) + 2
+    if not all:
+        height = min(height, max(y for x,y in latest)+5)
 
-    height = min(height, height2)
-
-    for y in range(height):
-        for x in range(width):
+    for y in range(height+1):
+        for x in range(width+1):
             print(end=pixel(x,y))
         print()
 
 path[(X,Y)] = dirs_to_chr[facing]
-for steps, rot in instructions:
-    # Move until we hit a wall!
-    dx, dy = facing
-    # sign = (dx > 0) - (dx < 0)
-    for _ in range(steps):
-        X, Y = try_move(X, Y, dx, 0)
-        # if is_next_wall(X, Y, dx, 0): continue
-        # else: X += dx
-        path[(X,Y)] = dirs_to_chr[facing]
+latest = {}
 
-    # sign = (dy > 0) - (dy < 0)
+for i, (steps, rot) in enumerate(instructions):
+    before = facing
+
+    latest = {}
     for _ in range(steps):
-        X, Y = try_move(X, Y, 0, dy)
-        # if is_next_wall(X, Y, 0, dy): continue
-        # else: Y += dy
+        (X, Y), facing = try_move(X, Y, *facing)
         path[(X,Y)] = dirs_to_chr[facing]
+        latest[(X,Y)] = dirs_to_chr[facing]
 
     # Rotate.
     if rot == 'R':
-        facing = -facing[1], facing[0]
+        facing = rotate_right(*facing)
     if rot == 'L':
-        facing = facing[1], -facing[0]
+        facing = rotate_left(*facing)
 
-    # debug_draw()
-    # print(steps, rot)
-    # print(f'final pos {X=} {Y=} {facing=}')
-    # if input() == 'q':
-    #     quit()
+    # print(f'moved {steps=}, then {rot=} in place (not drawn yet I think)')
+    # m = f'final pos {X=} {Y=} {before=} {rot=} -> {facing=}'
+    # print(m)
 
-# debug_draw()
+debug_draw(all=True)
+print(len(instructions))
 print(f'final pos {X=} {Y=} {facing=}')
-
-# ans is 1-indexed
-row = (Y+1) * 1000
-col = (X+1) * 4
 
 chr_to_score = {
     '^': 3,
@@ -148,10 +173,5 @@ chr_to_score = {
     'v': 1,
     '<': 2,
 }
-
-
 f = chr_to_score[dirs_to_chr[facing]]
-print(dirs_to_chr[facing], f)
-
-print(f"{row} + {col} + {f}")
-print(row + col + f)
+print((Y+1) * 1000 + (X+1) * 4 + f)
