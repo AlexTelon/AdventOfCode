@@ -46,30 +46,24 @@ for y, line in enumerate(ggrid.splitlines()):
             sides[side][(x % SIDE_D, y % SIDE_D)] = c
             if X == None:
                 X, Y = x, y
-assert {len(v) for v in sides.values()} == {SIDE_D*SIDE_D}
 
 
 def try_move(x,y, dx,dy):
-    original = (x,y)
-    original_face = (dx,dy)
-
-    x += dx
-    y += dy
-    if (x,y) in grid:
-        if grid[(x,y)] == '.':
-            # can move, so move.
-            return (x,y), (dx,dy)
-        if grid[(x,y)] == '#':
-            # cant move, move back to original and return that.
-            return original, (dx,dy)
+    dest = grid[(x+dx,y+dy)]
+    if dest == '.':
+        # Can move so move.
+        return (x+dx,y+dy), (dx,dy)
+    elif dest == '#':
+        # Cant move, move back to original and return that.
+        return (x,y), (dx,dy)
 
     # move around an edge!
-    x, y = original
     current_side = pos_to_side(x,y)
-    face = dirs_to_chr[(dx,dy)] # ><v^
+    face = dirs_to_chr[(dx,dy)]
 
     xx = x % SIDE_D
     yy = y % SIDE_D
+
     if current_side == 1:
         if   face == '>': next_side = 2; xx = SIDE_D - 1 - xx
         elif face == '<': next_side = 6; yy = SIDE_D - 1 - yy; face = '>'
@@ -103,16 +97,16 @@ def try_move(x,y, dx,dy):
     else:
         assert False
 
-    facing = dirs[face]
     xx %= SIDE_D
     yy %= SIDE_D
 
     if sides[next_side][(xx,yy)] == '#':
-        # failed so return original everything
-        return original, original_face
-
-    x, y = side_to_pos(next_side)
-    return (x+xx, y+yy), facing
+        # Cant move there so dont move or rotate.
+        return (x,y), (dx,dy)
+    else:
+        # We can move so move.
+        x, y = side_to_pos(next_side)
+        return (x+xx, y+yy), dirs[face]
 
 
 path = {}
@@ -153,15 +147,8 @@ for i, (steps, rot) in enumerate(instructions):
         path[(X,Y)] = dirs_to_chr[facing]
         latest[(X,Y)] = dirs_to_chr[facing]
 
-    # Rotate.
-    if rot == 'R':
-        facing = rotate_right(*facing)
-    if rot == 'L':
-        facing = rotate_left(*facing)
-
-    # print(f'moved {steps=}, then {rot=} in place (not drawn yet I think)')
-    # m = f'final pos {X=} {Y=} {before=} {rot=} -> {facing=}'
-    # print(m)
+    if rot == 'R': facing = rotate_right(*facing)
+    if rot == 'L': facing = rotate_left(*facing)
 
 debug_draw(all=True)
 print(len(instructions))
