@@ -1,6 +1,5 @@
 from collections import defaultdict
-from itertools import cycle
-import math
+from itertools import count, cycle
 MIN_X, MAX_X, MIN_Y, MAX_Y = 0,0,0,0
 
 lines = open('in.txt').read().splitlines()
@@ -63,15 +62,17 @@ rules = cycle([
 ])
 
 update_bounds()
-print('initial state')
-debug_draw()
-print()
+# print('initial state')
+# debug_draw()
+# print()
 
 
-for i in range(10):
+# for i in range(10):
+for i in count(1):
     out_grid = defaultdict(list)
 
     # prep phase.
+    MOVED = False
     for y in range(MIN_Y, MAX_Y+1):
         for x in range(MIN_X, MAX_X+1):
             if not elf(x,y): continue
@@ -87,11 +88,12 @@ for i in range(10):
                     xx, yy = directions[move]
                     out_grid[(x+xx, y+yy)].append((x,y))
                     moved = True
-                    print((x,y), move, 'to ', x+xx, y+yy)
+                    MOVED = True
             if not moved:
-                print((x,y), 'found nowhere to move')
                 out_grid[(x, y)].append((x,y))
-    print()
+    
+    if not MOVED:
+        break
 
     new_grid = defaultdict(lambda: '.')
     for pos, candidates in out_grid.items():
@@ -104,24 +106,17 @@ for i in range(10):
                 new_grid[c] = '#'
 
     grid = new_grid
-    # print(len(grid))
 
     # move phase.
     update_bounds()
-    debug_draw()
-    # if input() == 'q': quit()
+    # debug_draw()
 
     next(rules)
 
+# t = 0
+# for y in range(MIN_Y, MAX_Y+1):
+#     for x in range(MIN_X, MAX_X+1):
+#         t += grid[(x,y)] == '.'
+# print(t)
 
-
-
-t = 0
-for y in range(MIN_Y, MAX_Y+1):
-    for x in range(MIN_X, MAX_X+1):
-        t += grid[(x,y)] == '.'
-print(t)
-
-# not 5538
-# not 4569
-# not 4443
+print('part2', i)
