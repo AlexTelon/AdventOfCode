@@ -21,4 +21,12 @@ fn main() {
     }
 
     println!("part1: {}", sums.iter().max().unwrap());
+
+    sums.sort();
+    println!("part2: {}", sums.iter()
+                              .rev()
+                              .take(3)
+                              .map(|x| *x)
+                              .sum::<i32>()
+                            )
 }
