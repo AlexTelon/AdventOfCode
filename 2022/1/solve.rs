@@ -13,13 +13,12 @@ fn main() {
 
     let mut sums: Vec<i32> = Vec::new();
     for chunk in chunks {
-        let mut sum = 0;
-        for line in chunk.split("\n") {
-            let num = line.parse::<i32>().unwrap();
-            sum += num;
-        }
-        sums.push(sum);
+        sums.push(
+            chunk.split("\n")
+                .map(|x| x.parse::<i32>().unwrap())
+                .sum()
+        )
     }
 
-    println!("max: {}", sums.iter().max().unwrap());
+    println!("part1: {}", sums.iter().max().unwrap());
 }
